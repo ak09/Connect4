@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<project name="PQS-Ant-File" default="jar" basedir=".">
+	<!-- Sets variables which can later be used. -->
+	<property name="src.dir" value="src" />
+	<property name="build.dir" value="bin" />
+	<property name="dist.dir" value="dist" />
+	<property name="test.dir" value="testsrc" />
+	<property name="test-bin.dir" value="test-bin" />
+	<property name="jar.dir" value="${dist.dir}/jar" />
+	<property name="lib.dir" value="lib" />
+	<property name="application" value="${jar.dir}/${ant.project.name}.jar" />
+	<path id="classpath">
+		<fileset dir="${lib.dir}" includes="**/*.jar" />
+	</path>
+
+	<!-- Deletes the existing build, dist, jar and test-bin directory-->
+	<target name="clean">
+		<delete dir="${build.dir}" />
+		<delete dir="${jar.dir}" />
+		<delete dir="${dist.dir}" />
+		<delete dir="${test-bin.dir}" />
+	</target>
+
+	<!-- Creates the build, dist, jar and test-bin directory-->
+	<target name="makedir">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${dist.dir}" />
+		<mkdir dir="${jar.dir}" />
+		<mkdir dir="${test-bin.dir}" />
+	</target>
+
+	<!-- Compiles the java and test code -->
+	<target name="compile" depends="clean, makedir">
+		<javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="true" />
+		<javac srcdir="${test.dir}" destdir="${test-bin.dir}" classpathref="classpath" classpath="${build.dir}" includeantruntime="true" />
+	</target>
+
+	<!--Runs junit test cases -->
+	<target name="junit" depends="compile">
+		<junit printsummary="yes" showoutput="true">
+			<formatter type="plain" usefile="false" />
+			<classpath>
+				<path refid="classpath" />
+				<path location="${build.dir}" />
+				<path location="${test-bin.dir}" />
+			</classpath>
+			<batchtest fork="yes">
+				<fileset dir="${test-bin.dir}" includes="**/*Connect4ModelTest.*" />
+			</batchtest>
+		</junit>
+	</target>
+
+	<!--Creates the deployable jar file without the test classes  -->
+	<target name="jar" depends="junit">
+		<jar destfile="${jar.dir}\${ant.project.name}.jar" basedir="${build.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="edu.nyu.pqs.connect4.view.Connect4Game" />
+			</manifest>
+		</jar>
+	</target>
+
+	<!--Runs the deployable jar file  -->
+	<target name="run" depends="jar">
+		<java jar="${application}" fork="true" />
+	</target>
+</project>
